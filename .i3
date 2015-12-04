@@ -1,1 +1,0 @@
-/home/nickmass/.i3
