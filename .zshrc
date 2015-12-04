@@ -72,7 +72,6 @@ export EDITOR='vim'
 
 alias bower='noglob bower'
 export ZLE_RPROMPT_INDENT=0
-# source $HOME/.shell_prompt.sh
 
 unsetopt beep
 
@@ -83,7 +82,7 @@ fd() {
 
 export FZF_DEFAULT_COMMAND="find ."
 
-source $HOME/base16-shell/base16-default.dark.sh
+source $HOME/.base16-shell/base16-default.dark.sh
 
 export RUST_SRC_PATH="/usr/local/src/rust/rustc-1.3.0/src"
 
