@@ -52,7 +52,7 @@ source $ZSH/oh-my-zsh.sh
 # User configuration
 
 
-export PATH="/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:$HOME/bin:$HOME/bin/racer"
+export PATH="/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:$HOME/bin:$HOME/.cargo/bin:/home/nickmass/.gem/ruby/2.3.0/bin"
 # export MANPATH="/usr/local/man:$MANPATH"
 
 # # Preferred editor for local and remote sessions
@@ -84,7 +84,10 @@ export FZF_DEFAULT_COMMAND="find ."
 
 source $HOME/.base16-shell/base16-default.dark.sh
 
-export RUST_SRC_PATH="/usr/local/src/rust/rustc-1.3.0/src"
+export RUST_SRC_PATH="/usr/local/src/rust/rustc-1.10.0/src"
+# export RUST_NEW_ERROR_FORMAT=true
+export CARGO_HOME="$HOME/.cargo"
+. /home/nickmass/.keys
 
 # OPAM configuration
 . /home/nickmass/.opam/opam-init/init.zsh > /dev/null 2> /dev/null || true

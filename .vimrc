@@ -1,51 +1,54 @@
+if &compatible
+	set nocompatible
+endif
+set runtimepath^=/home/nickmass/.vim/repos/github.com/Shougo/dein.vim
 
-" Bundle Scripts-----------------------------
-if has('vim_starting')
-  set nocompatible               " Be iMproved
+call dein#begin('/home/nickmass/.vim')
+" My Bundles Here:
+call dein#add('Shougo/dein.vim')
+call dein#add('Shougo/vimproc.vim', {'build': 'make'})
+call dein#add('chriskempson/base16-vim')
+call dein#add('Shougo/unite.vim')
+call dein#add('rust-lang/rust.vim')
+call dein#add('airblade/vim-gitgutter')
+call dein#add('racer-rust/vim-racer')
+call dein#add('scrooloose/syntastic')
+call dein#add('tpope/vim-unimpaired')
+call dein#end()
 
-  " Required:
-  set runtimepath+=~/.vim/bundle/neobundle.vim/
+if dein#check_install()
+	call dein#install()
 endif
 
-" Required:
-call neobundle#begin(expand('~/.vim/bundle'))
-
-" Let NeoBundle manage NeoBundle
-" Required:
-NeoBundleFetch 'Shougo/neobundle.vim'
-
-" My Bundles Here:
-NeoBundle 'chriskempson/base16-vim'
-NeoBundle 'kien/ctrlp.vim'
-NeoBundle 'rust-lang/rust.vim'
-NeoBundle 'Valloric/YouCompleteMe'
-NeoBundle 'airblade/vim-gitgutter'
-NeoBundle 'ebfe/vim-racer'
-
-" Required:
-call neobundle#end()
-
-" Required:
 filetype plugin indent on
 
-" If there are uninstalled bundles found on startup,
-" this will conveniently prompt you to install them.
-NeoBundleCheck
-"End NeoBundle Scripts-------------------------
-
-let g:ycm_key_list_select_completion = ['<TAB>']
-let g:ycm_key_list_previous_completion = ['<S-TAB>']
-
+let g:racer_cmd = "racer"
+let g:rustfmt_autosave = 0
+let g:rustfmt_fail_silently = 1
 let g:gitgutter_override_sign_column_highlight = 0
 
-imap jk <esc>
-vmap jk <esc>
+set statusline+=%#warningmsg#
+set statusline+=%{SyntasticStatuslineFlag()}
+set statusline+=%*
+
+let g:syntastic_always_populate_loc_list = 1
+let g:syntastic_auto_loc_list = 1
+let g:syntastic_check_on_open = 1
+let g:syntastic_check_on_wq = 0
+
+call unite#custom#profile('default', 'context', {
+			\ 'start_insert': 1
+			\})
+
 nmap <S-tab> <<
 imap <S-tab> <esc><<i
+nmap <C-p> :Unite file_rec/async buffer<CR>
+imap <C-p> <esc>:Unite file_rec/async buffer<CR>
 
 command W w !sudo tee %
 
-set nonumber
+set hidden
+set number
 set tabstop=4
 set shiftwidth=4
 set autoindent
@@ -56,7 +59,7 @@ set noswapfile
 
 let base16colorspace=256
 set background=dark
-colorscheme base16-default
+colorscheme base16-default-dark
 
 syntax on
 
