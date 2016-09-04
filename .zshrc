@@ -69,6 +69,7 @@ export PATH="/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/
 # export SSH_KEY_PATH="~/.ssh/dsa_id"
 
 export EDITOR='vim'
+alias emacs='emacs -nw'
 
 alias bower='noglob bower'
 export ZLE_RPROMPT_INDENT=0

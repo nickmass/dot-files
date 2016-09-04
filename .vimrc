@@ -15,6 +15,8 @@ call dein#add('racer-rust/vim-racer')
 call dein#add('scrooloose/syntastic')
 call dein#add('tpope/vim-unimpaired')
 call dein#add('arnar/vim-matchopen')
+call dein#add('vim-scripts/Conque-GDB')
+call dein#add('easymotion/vim-easymotion')
 call dein#end()
 
 if dein#check_install()
@@ -22,6 +24,8 @@ if dein#check_install()
 endif
 
 filetype plugin indent on
+
+autocmd VimEnter * ConqueGdbExe rust-gdb
 
 let g:racer_cmd = "racer"
 let g:rustfmt_autosave = 0
@@ -37,16 +41,23 @@ let g:syntastic_check_on_wq = 0
 call unite#custom#profile('default', 'context', {
 			\ 'start_insert': 1
 			\})
+call unite#custom#source('file_rec,file_rec/async', 'ignore_pattern', 'target/')
 
-nmap <S-tab> <<
-imap <S-tab> <esc><<i
 nmap <C-p> :Unite file_rec/async buffer<CR>
 imap <C-p> <esc>:Unite file_rec/async buffer<CR>
+
+let g:EasyMotion_do_mapping = 0
+let g:EasyMotion_smartcase = 1
+nmap s <Plug>(easymotion-overwin-f2)
+map <Leader>j <Plug>(easymotion-j)
+map <Leader>k <Plug>(easymotion-k)
 
 command W w !sudo tee %
 
 set hidden
 set number
+set cursorline
+set relativenumber
 set tabstop=4
 set shiftwidth=4
 set autoindent
