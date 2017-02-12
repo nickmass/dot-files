@@ -1,3 +1,9 @@
+Xft.autohint: false
+Xft.lcdfiler: lcddefault
+Xft.rgba: rgb
+Xft.hinting: true
+Xft.hintstyle: hintfull
+
 URxvt.perl-ext-common: default,clipboard,matcher,selection
 URxvt.keysym.M-c: perl:clipboard:copy
 URxvt.keysym.M-v: perl:clipboard:paste
@@ -15,4 +21,4 @@ URxvt.foreground: #d8d8d8
 URxvt.scrollBar: false
 URxvt.intensityStyles: false
 URxvt.urgentOnBell: true
-URxvt.font: xft:PragmataPro:size=14:antialias=false
+URxvt.font: xft:PragmataPro:style=Regular:size=14:antialias=true
