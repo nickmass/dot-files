@@ -48,7 +48,7 @@ source $ZSH/oh-my-zsh.sh
 
 unsetopt beep
 
-export PATH="/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:$HOME/bin:$HOME/.cargo/bin:$HOME/.gem/ruby/2.3.0/bin"
+export PATH="/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:$HOME/bin:$HOME/.cargo/bin:$HOME/.gem/ruby/2.3.0/bin:$HOME/.yarn/bin"
 export EDITOR='vim'
 export ZLE_RPROMPT_INDENT=0
 export RUST_SRC_PATH="$HOME/.multirust/toolchains/nightly-x86_64-unknown-linux-gnu/lib/rustlib/src/rust/src"
