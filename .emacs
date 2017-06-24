@@ -6,26 +6,26 @@
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+(package-refresh-contents)
+(package-install 'use-package))
 
 (eval-when-compile
-  (require 'use-package))
+(require 'use-package))
 (require 'diminish)
 (require 'bind-key)
 
- ;; Appearence
+;; Appearence
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
 
 (set-face-attribute 'default nil
-		    :family "Pragmata Pro"
-		    :height 160
-		    :weight 'bold)
+		:family "Pragmata Pro"
+		:height 160
+		:weight 'bold)
 
 
- ;;Behavior
+;;Behavior
 
  ;;Store backups in /tmp
 (setq backup-directory-alist
@@ -37,6 +37,8 @@
 (desktop-save-mode 1)
 
 (show-paren-mode 1)
+
+(setq show-trailing-whitespace t)
 
 ;; Shift+Arrows to navigate windows
 (windmove-default-keybindings)
@@ -66,6 +68,11 @@
 	'((read-file-name-internal . ivy--regex-fuzzy)
 	  (t . ivy--regex-plus))))
 
+(use-package counsel
+  :config
+  (counsel-mode 1)
+  :bind ("C-x f" . counsel-find-file))
+
 (use-package company
   :config
   (add-hook 'after-init-hook 'global-company-mode))
@@ -88,6 +95,10 @@
   :config
   (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
 
+(use-package magit
+  :commands (magit-status)
+  :bind (("C-x g" . magit-status)))
+
 (use-package rust-mode
   :mode ("\\.rs\\'" "\\.toml\\'"))
 
@@ -103,6 +114,22 @@
 (use-package flycheck-rust
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+
+(use-package markdown-mode
+  :commands (markdown-mode gfm-mode)
+  :mode (("README\\.md\\'" . gfm-mode)
+         ("\\.md\\'" . markdown-mode)
+         ("\\.markdown\\'" . markdown-mode))
+  :init (setq markdown-command "markdown"))
+
+(use-package rjsx-mode
+  :mode "\\.jsx\\'")
+
+(use-package js2-mode
+  :mode ("\\.js\\'" "\\.es6\\'"))
+
+(use-package web-mode
+  :mode ("\\.html\\'" "\\.htm\\'"))
 
 ;; Enable ligatures without prettify-symbols
 
@@ -222,7 +249,7 @@
             ("\\(<\\.\\)"             #XE80A)
             ("\\(<\\.>\\)"            #XE7FB)
             ("\\(</\\)"               #XE80B)
-            ("\\(</>\\)"              #XE7FC)
+  ;;        ("\\(</>\\)"              #XE7FC)
             ("\\(<\\\\\\)"            #XE80C)
             ("\\(<\"\\)"              #XE80D)
             ("\\(<\">\\)"             #XE7FE)
@@ -300,7 +327,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (company-mode use-package racer ivy flycheck-rust evil cargo base16-theme))))
+    (counsel magit company-mode use-package racer ivy flycheck-rust evil cargo base16-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
