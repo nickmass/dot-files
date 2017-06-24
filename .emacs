@@ -53,12 +53,12 @@
 (use-package evil
   :config
   (evil-mode 1)
-  (setq evil-emacs-state-cursor '("green" box))
-  (setq evil-normal-state-cursor '("red" box))
-  (setq evil-visual-state-cursor '("orange" box))
-  (setq evil-insert-state-cursor '("green" bar))
-  (setq evil-replace-state-cursor '("green" bar))
-  (setq evil-operator-state-cursor '("green" hollow)))
+  (setq evil-emacs-state-cursor '("#A6E22E" box))         ;; Green
+  (setq evil-normal-state-cursor '("#F92672" box))        ;; Red
+  (setq evil-visual-state-cursor '("#FD971F" box))        ;; Orange
+  (setq evil-insert-state-cursor '("#A6E22E" bar))        ;; Green
+  (setq evil-replace-state-cursor '("#66D9EF" bar))       ;; Blue
+  (setq evil-operator-state-cursor '("#A6E22E" hollow)))  ;; Green
 
 (use-package ivy
   :config
