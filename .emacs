@@ -46,19 +46,53 @@
  ;; Packages
 (setq use-package-always-ensure t)
 
-(use-package base16-theme
+(use-package monokai-theme
   :config
-  (load-theme 'base16-monokai t))
+  (load-theme 'monokai t))
 
 (use-package evil
   :config
   (evil-mode 1)
-  (setq evil-emacs-state-cursor '("#A6E22E" box))         ;; Green
-  (setq evil-normal-state-cursor '("#F92672" box))        ;; Red
-  (setq evil-visual-state-cursor '("#FD971F" box))        ;; Orange
-  (setq evil-insert-state-cursor '("#A6E22E" bar))        ;; Green
-  (setq evil-replace-state-cursor '("#66D9EF" bar))       ;; Blue
-  (setq evil-operator-state-cursor '("#A6E22E" hollow)))  ;; Green
+  (setq evil-emacs-state-cursor '("#A6E22E" box))
+  (setq evil-normal-state-cursor '("#F92672" box))
+  (setq evil-visual-state-cursor '("#FD971F" box))
+  (setq evil-insert-state-cursor '("#A6E22E" bar))
+  (setq evil-replace-state-cursor '("#66D9EF" bar))
+  (setq evil-operator-state-cursor '("#A6E22E" hollow)))
+  (setq evil-motion-state-cursor '("#66D9EF" bar))
+
+(use-package telephone-line
+  :config
+  (set-face-attribute 'telephone-line-evil-emacs nil
+		      :background "#A6E22E")
+  (set-face-attribute 'telephone-line-evil-normal nil
+		      :background "#F92672")
+  (set-face-attribute 'telephone-line-evil-visual nil
+		      :background "#FD971F")
+  (set-face-attribute 'telephone-line-evil-insert nil
+		      :background "#A6E22E")
+  (set-face-attribute 'telephone-line-evil-replace nil
+		      :background "#66D9EF")
+  (set-face-attribute 'telephone-line-evil-operator nil
+		      :background "#A6E22E")
+  (set-face-attribute 'telephone-line-evil-motion nil
+		      :background "#66D9EF")
+  (setq telephone-line-lhs
+	'((evil . (telephone-line-evil-tag-segment))
+	  (accent . (telephone-line-vc-segment
+		     telephone-line-erc-modified-channels-segment
+		     telephone-line-process-segment))
+	  (nil . (telephone-line-buffer-segment))))
+  (setq telephone-line-rhs
+	'((nil . (telephone-line-misc-info-segment))
+	  (accent . (telephone-line-major-mode-segment))
+	  (evil . (telephone-line-airline-position-segment))))
+  (setq telephone-line-primary-left-separator 'telephone-line-identity-right
+	telephone-line-secondary-left-separator 'telephone-line-identity-right
+	telephone-line-primary-right-separator 'telephone-line-identity-left
+	telephone-line-secondary-right-separator 'telephone-line-identity-left)
+  (setq telephone-line-height 28)
+  (telephone-line-mode 1))
 
 (use-package ivy
   :config
@@ -71,7 +105,9 @@
 (use-package counsel
   :config
   (counsel-mode 1)
-  :bind ("C-x f" . counsel-find-file))
+  :bind
+  ("C-x f" . counsel-find-file)
+  ("C-x r r" . counsel-recentf))
 
 (use-package company
   :config
@@ -99,11 +135,18 @@
   :commands (magit-status)
   :bind (("C-x g" . magit-status)))
 
+(use-package diff-hl
+  :config
+  (diff-hl-mode 1)
+  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
+  (add-hook 'flycheck-mode-hook 'diff-hl-flydiff-mode))
+
 (use-package rust-mode
   :mode ("\\.rs\\'" "\\.toml\\'"))
 
 (use-package cargo
-  :after rust-mode)
+  :config
+  (add-hook 'rust-mode-hook #'cargo-minor-mode))
 
 (use-package racer
   :config
@@ -319,7 +362,6 @@
 
 (add-hook 'prog-mode-hook
           #'add-pragmatapro-symbol-keywords)
-
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -327,7 +369,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (counsel magit company-mode use-package racer ivy flycheck-rust evil cargo base16-theme))))
+    (diff-hl telephone-line web-mode use-package rjsx-mode relative-line-numbers rainbow-delimiters racer markdown-mode magit flycheck-rust exec-path-from-shell evil counsel company cargo base16-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
