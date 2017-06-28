@@ -18,6 +18,7 @@
 (menu-bar-mode -1)
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
+(global-hl-line-mode 1)
 
 (set-face-attribute 'default nil
 		:family "Pragmata Pro"
@@ -56,31 +57,36 @@
 (use-package evil
   :config
   (evil-mode 1)
-  (setq evil-emacs-state-cursor '("#A6E22E" box))
-  (setq evil-normal-state-cursor '("#F92672" box))
-  (setq evil-visual-state-cursor '("#FD971F" box))
-  (setq evil-insert-state-cursor '("#A6E22E" bar))
-  (setq evil-replace-state-cursor '("#66D9EF" bar))
-  (setq evil-operator-state-cursor '("#A6E22E" hollow)))
-  (setq evil-motion-state-cursor '("#66D9EF" bar))
+  (setq evil-want-fine-undo t)
+  (setq evil-emacs-state-cursor `(,monokai-gray box))
+  (setq evil-normal-state-cursor `(,monokai-red box))
+  (setq evil-visual-state-cursor `(,monokai-orange box))
+  (setq evil-insert-state-cursor `(,monokai-green bar))
+  (setq evil-replace-state-cursor `(,monokai-blue bar))
+  (setq evil-operator-state-cursor `(,monokai-green hollow))
+  (setq evil-motion-state-cursor `(,monokai-blue bar)))
+
+(use-package evil-escape
+  :bind
+  ("<escape>" . evil-escape))
 
 (use-package telephone-line
   :if window-system
   :config
   (set-face-attribute 'telephone-line-evil-emacs nil
-		      :background "#A6E22E")
+		      :background monokai-gray)
   (set-face-attribute 'telephone-line-evil-normal nil
-		      :background "#F92672")
+		      :background monokai-red)
   (set-face-attribute 'telephone-line-evil-visual nil
-		      :background "#FD971F")
+		      :background monokai-orange)
   (set-face-attribute 'telephone-line-evil-insert nil
-		      :background "#A6E22E")
+		      :background monokai-green)
   (set-face-attribute 'telephone-line-evil-replace nil
-		      :background "#66D9EF")
+		      :background monokai-blue)
   (set-face-attribute 'telephone-line-evil-operator nil
-		      :background "#A6E22E")
+		      :background monokai-green)
   (set-face-attribute 'telephone-line-evil-motion nil
-		      :background "#66D9EF")
+		      :background monokai-blue)
   (setq telephone-line-lhs
 	'((evil . (telephone-line-evil-tag-segment))
 	  (accent . (telephone-line-vc-segment
@@ -110,8 +116,17 @@
   :config
   (counsel-mode 1)
   :bind
-  ("C-x f" . counsel-find-file)
-  ("C-x r r" . counsel-recentf))
+  ("C-c a f" . counsel-find-file)
+  ("C-c a r" . counsel-recentf)
+  ("C-c a b" . list-buffers))
+
+(use-package projectile
+  :config
+  (projectile-mode 1))
+
+(use-package counsel-projectile
+  :after projectile
+  :config (counsel-projectile-on))
 
 (use-package company
   :config
@@ -137,7 +152,7 @@
 
 (use-package magit
   :commands (magit-status)
-  :bind (("C-x g" . magit-status)))
+  :bind (("C-c a g" . magit-status)))
 
 (use-package diff-hl
   :config
@@ -375,7 +390,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (diff-hl telephone-line web-mode use-package rjsx-mode relative-line-numbers rainbow-delimiters racer markdown-mode magit flycheck-rust exec-path-from-shell evil counsel company cargo base16-theme))))
+    (evil-escape diff-hl telephone-line web-mode use-package rjsx-mode relative-line-numbers rainbow-delimiters racer markdown-mode magit flycheck-rust exec-path-from-shell evil counsel company cargo base16-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
