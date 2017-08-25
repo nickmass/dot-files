@@ -44,11 +44,15 @@
 ;; Shift+Arrows to navigate windows
 (windmove-default-keybindings)
 
+(global-set-key (kbd "C-<SPC>") 'mode-line-other-buffer)
+
 ;; Persist hardlinks to files
 (setq-default backup-by-copying t)
 
  ;; Packages
 (setq use-package-always-ensure t)
+
+(setq-default indent-tabs-mode nil)
 
 (use-package monokai-theme
   :config
@@ -65,7 +69,6 @@
   (setq evil-replace-state-cursor `(,monokai-blue bar))
   (setq evil-operator-state-cursor `(,monokai-green hollow))
   (setq evil-motion-state-cursor `(,monokai-blue bar)))
-
 (use-package evil-escape
   :bind
   ("<escape>" . evil-escape))
@@ -118,7 +121,7 @@
   :bind
   ("C-c a f" . counsel-find-file)
   ("C-c a r" . counsel-recentf)
-  ("C-c a b" . list-buffers))
+  ("C-c a b" . ivy-switch-buffer))
 
 (use-package projectile
   :config
@@ -171,7 +174,8 @@
   :config
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
-  (add-hook 'racer-mode-hook #'company-mode))
+  (add-hook 'racer-mode-hook #'company-mode)
+  (define-key evil-normal-state-map (kbd "M-.") 'racer-find-definition))
 
 (use-package flycheck-rust
   :config
@@ -192,6 +196,12 @@
 
 (use-package web-mode
   :mode ("\\.html\\'" "\\.htm\\'"))
+
+(use-package lua-mode
+  :mode ("\\.lua\\'" "\\.p8\\'"))
+
+(use-package protobuf-mode
+  :mode ("\\.proto'"))
 
 ;; For emacs25
 (setq prettify-symbols-unprettify-at-point 'right-edge)
@@ -390,7 +400,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (evil-escape diff-hl telephone-line web-mode use-package rjsx-mode relative-line-numbers rainbow-delimiters racer markdown-mode magit flycheck-rust exec-path-from-shell evil counsel company cargo base16-theme))))
+    (protobuf-mode lua-mode evil-escape diff-hl telephone-line web-mode use-package rjsx-mode relative-line-numbers rainbow-delimiters racer markdown-mode magit flycheck-rust exec-path-from-shell evil counsel company cargo base16-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
