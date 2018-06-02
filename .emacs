@@ -1,3 +1,9 @@
+;;; .emacs -- NickMass' emacs config
+;;; Commentary:
+;;; Rust and web dev ahoy.
+
+;;; Code:
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
@@ -19,27 +25,29 @@
 (tool-bar-mode -1)
 (toggle-scroll-bar -1)
 (global-hl-line-mode 1)
+(setq inhibit-startup-screen 1)
 
 (set-face-attribute 'default nil
 		:family "Pragmata Pro"
 		:height 160
 		:weight 'bold)
 
+;; Behavior
 
-;;Behavior
-
- ;;Store backups in /tmp
+;; Store backups in /tmp
 (setq backup-directory-alist
       `((".*" . ,temporary-file-directory)))
 (setq auto-save-file-name-transforms
       `((".*" ,temporary-file-directory t)))
 
-;;Restore sessions on launch
-(desktop-save-mode 1)
-
 (show-paren-mode 1)
 
+(setq split-height-threshold 160)
 (setq-default show-trailing-whitespace t)
+(setq-default display-line-numbers 'relative)
+(setq-default auto-hscroll-mode 'current-line)
+(set-default 'truncate-lines 1)
+(setq-default truncate-partial-width-windows 1)
 
 ;; Shift+Arrows to navigate windows
 (windmove-default-keybindings)
@@ -49,21 +57,18 @@
 ;; Persist hardlinks to files
 (setq-default backup-by-copying t)
 
- ;; Packages
+;; Packages
 (setq use-package-always-ensure t)
 
 (setq-default indent-tabs-mode nil)
-
-(defun my-cargo-build-hook ()
-  (setq truncate-lines nil)
-  (set (make-local-variable 'truncate-partial-width-windows) nil))
-(add-hook 'cargo-process-mode-hook 'my-cargo-build-hook)
 
 (use-package monokai-theme
   :config
   (load-theme 'monokai t))
 
 (use-package evil
+  :init
+  (setq evil-want-integration nil)
   :config
   (evil-mode 1)
   (setq evil-want-fine-undo t)
@@ -74,9 +79,23 @@
   (setq evil-replace-state-cursor `(,monokai-blue bar))
   (setq evil-operator-state-cursor `(,monokai-green hollow))
   (setq evil-motion-state-cursor `(,monokai-blue bar)))
+
 (use-package evil-escape
+  :after evil
   :bind
   ("<escape>" . evil-escape))
+
+(use-package evil-collection
+  :after evil
+  :init
+  (setq evil-collection-setup-minibuffer t)
+  :config
+  (evil-collection-init))
+
+(use-package undo-tree
+  :config
+  (setq undo-tree-visualizer-diff 1)
+  (with-no-warnings (global-undo-tree-mode 1)))
 
 (use-package telephone-line
   :if window-system
@@ -117,13 +136,14 @@
   (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-re-builders-alist
-	'((read-file-name-internal . ivy--regex-fuzzy)
+	'((read-file-name-internal . ivy--regex-plus)
 	  (t . ivy--regex-plus))))
 
 (use-package counsel
   :config
   (counsel-mode 1)
   :bind
+  ("C-c a s" . counsel-rg)
   ("C-c a f" . counsel-find-file)
   ("C-c a r" . counsel-recentf)
   ("C-c a b" . ivy-switch-buffer))
@@ -134,7 +154,7 @@
 
 (use-package counsel-projectile
   :after projectile
-  :config (counsel-projectile-on))
+  :config (counsel-projectile-mode 1))
 
 (use-package company
   :config
@@ -147,13 +167,6 @@
   :if window-system
   :init (exec-path-from-shell-initialize))
 
-(use-package nlinum-relative
-  :config
-  (nlinum-relative-setup-evil)
-  (add-hook 'prog-mode-hook 'nlinum-relative-mode)
-  (setq nlinum-relative-redisplay-delay 0)
-  (setq nlinum-relative-current-symbol  ""))
-
 (use-package rainbow-delimiters
   :config
   (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
@@ -162,6 +175,10 @@
   :commands (magit-status)
   :bind (("C-c a g" . magit-status)))
 
+(use-package which-key
+  :config
+  (which-key-mode))
+
 (use-package diff-hl
   :config
   (global-diff-hl-mode 1)
@@ -169,20 +186,25 @@
   (add-hook 'flycheck-mode-hook 'diff-hl-flydiff-mode))
 
 (use-package rust-mode
-  :mode ("\\.rs\\'" "\\.toml\\'"))
+  :mode ("\\.rs\\'"))
 
 (use-package cargo
   :config
-  (add-hook 'rust-mode-hook #'cargo-minor-mode))
+  (setq cargo-process--command-fmt "cargo +nightly fmt")
+  (add-hook 'rust-mode-hook #'cargo-minor-mode)
+  (add-hook 'cargo-process-mode-hook (lambda ()
+                                       (setq truncate-lines nil)
+                                       (setq truncate-partial-width-windows nil))))
 
 (use-package racer
   :config
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
   (add-hook 'racer-mode-hook #'company-mode)
-  (define-key evil-normal-state-map (kbd "M-.") 'racer-find-definition))
+  (define-key evil-normal-state-map (kbd "g d") 'racer-find-definition))
 
 (use-package flycheck-rust
+  :after rust-mode
   :config
   (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
 
@@ -208,7 +230,9 @@
 (use-package protobuf-mode
   :mode ("\\.proto'"))
 
-;; For emacs25
+(use-package keychain-environment
+  :config (keychain-refresh-environment))
+
 (setq prettify-symbols-unprettify-at-point 'right-edge)
 
 (defconst pragmatapro-prettify-symbols-alist
@@ -408,14 +432,17 @@
             ("\">"       #XEA90))))
 
 (defun add-pragmatapro-prettify-symbols-alist ()
+  "Add pragmatapro ligs to list."
   (dolist (alias pragmatapro-prettify-symbols-alist)
     (push alias prettify-symbols-alist)))
 
-(add-hook 'prog-mode-hook
-          #'add-pragmatapro-prettify-symbols-alist)
+(if (window-system)
+    (add-hook 'prog-mode-hook
+              #'add-pragmatapro-prettify-symbols-alist))
 
-(global-prettify-symbols-mode +1)
+(global-prettify-symbols-mode 1)
 
+;;; .emacs ends here
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -423,7 +450,7 @@
  ;; If there is more than one, they won't work right.
  '(package-selected-packages
    (quote
-    (protobuf-mode lua-mode evil-escape diff-hl telephone-line web-mode use-package rjsx-mode relative-line-numbers rainbow-delimiters racer markdown-mode magit flycheck-rust exec-path-from-shell evil counsel company cargo base16-theme))))
+    (which-key web-mode use-package telephone-line sublimity rjsx-mode rainbow-delimiters racer protobuf-mode nlinum-relative monokai-theme magit lua-mode keychain-environment flycheck-rust flycheck-inline exec-path-from-shell evil-escape evil-collection diminish diff-hl counsel-projectile company cargo))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

@@ -31,7 +31,7 @@ let g:racer_cmd = "racer"
 let g:rustfmt_autosave = 0
 let g:rustfmt_fail_silently = 1
 let g:gitgutter_override_sign_column_highlight = 0
-let g:gitgutter_sign_column_always = 1
+set signcolumn=yes
 
 let g:syntastic_always_populate_loc_list = 1
 let g:syntastic_auto_loc_list = 1
