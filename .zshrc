@@ -48,7 +48,13 @@ source $ZSH/oh-my-zsh.sh
 
 unsetopt beep
 
-set -o vi
+bindkey -v
+bindkey "^[[A" history-search-backward
+bindkey "^[[B" history-search-forward
+bindkey -M vicmd "^[[A" history-search-backward
+bindkey -M vicmd "^[[B" history-search-forward
+bindkey -M vicmd "j" history-search-backward
+bindkey -M vicmd "k" history-search-forward
 
 export PATH="/usr/lib/lightdm/lightdm:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games:$HOME/bin:$HOME/.cargo/bin:$HOME/.gem/ruby/2.3.0/bin:$HOME/.yarn/bin"
 export EDITOR='vim'
