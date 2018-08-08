@@ -146,6 +146,7 @@
   ("C-c a s" . counsel-rg)
   ("C-c a f" . counsel-find-file)
   ("C-c a r" . counsel-recentf)
+  ("C-c a d" . ivy-switch-buffer)
   ("C-c a b" . ivy-switch-buffer))
 
 (use-package projectile
@@ -158,7 +159,8 @@
 
 (use-package company
   :config
-  (add-hook 'after-init-hook 'global-company-mode))
+  (add-hook 'after-init-hook 'global-company-mode)
+  (define-key company-active-map (kbd "<return>") #'company-complete-selection))
 
 (use-package flycheck
   :config (global-flycheck-mode 1))
@@ -186,7 +188,9 @@
   (add-hook 'flycheck-mode-hook 'diff-hl-flydiff-mode))
 
 (use-package rust-mode
-  :mode ("\\.rs\\'"))
+  :mode ("\\.rs\\'")
+  :config
+  (setq rust-format-on-save t))
 
 (use-package cargo
   :config
@@ -201,7 +205,8 @@
   (add-hook 'rust-mode-hook #'racer-mode)
   (add-hook 'racer-mode-hook #'eldoc-mode)
   (add-hook 'racer-mode-hook #'company-mode)
-  (define-key evil-normal-state-map (kbd "g d") 'racer-find-definition))
+  (define-key evil-normal-state-map (kbd "g d") 'racer-find-definition)
+  (define-key evil-normal-state-map (kbd "g .") 'racer-describe))
 
 (use-package flycheck-rust
   :after rust-mode
@@ -222,13 +227,24 @@
   :mode ("\\.js\\'" "\\.es6\\'"))
 
 (use-package web-mode
-  :mode ("\\.html\\'" "\\.htm\\'"))
+  :mode ("\\.html\\'" "\\.htm\\'" "\\.cshtml\\'"))
 
 (use-package lua-mode
   :mode ("\\.lua\\'" "\\.p8\\'"))
 
 (use-package protobuf-mode
   :mode ("\\.proto'"))
+
+(use-package csharp-mode
+  :mode ("\\.cs'"))
+
+(use-package omnisharp
+  :after company
+  :config
+  (add-hook 'csharp-mode-hook 'omnisharp-mode)
+  (add-to-list 'company-backends 'company-omnisharp)
+  (add-hook 'csharp-mode-hook #'company-mode)
+  (add-hook 'csharp-mode-hook #'flycheck-mode))
 
 (use-package keychain-environment
   :config (keychain-refresh-environment))
@@ -442,18 +458,7 @@
 
 (global-prettify-symbols-mode 1)
 
+(setq custom-file "~/.emacs.d/custom.el")
+(load custom-file t)
+
 ;;; .emacs ends here
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(package-selected-packages
-   (quote
-    (which-key web-mode use-package telephone-line sublimity rjsx-mode rainbow-delimiters racer protobuf-mode nlinum-relative monokai-theme magit lua-mode keychain-environment flycheck-rust flycheck-inline exec-path-from-shell evil-escape evil-collection diminish diff-hl counsel-projectile company cargo))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- )
