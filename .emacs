@@ -29,10 +29,12 @@
 
 (set-face-attribute 'default nil
 		:family "Pragmata Pro"
-		:height 160
+		:height 100
 		:weight 'bold)
 
 ;; Behavior
+(server-start)
+(setq-default js-indent-level 2)
 
 ;; Store backups in /tmp
 (setq backup-directory-alist
@@ -69,6 +71,7 @@
 (use-package evil
   :init
   (setq evil-want-integration nil)
+  (setq evil-want-keybinding nil)
   :config
   (evil-mode 1)
   (setq evil-want-fine-undo t)
@@ -174,8 +177,12 @@
   (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
 
 (use-package magit
+  :demand
   :commands (magit-status)
   :bind (("C-c a g" . magit-status)))
+
+(use-package evil-magit
+  :after (evil magit))
 
 (use-package which-key
   :config
