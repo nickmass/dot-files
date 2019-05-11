@@ -160,6 +160,10 @@
   :after projectile
   :config (counsel-projectile-mode 1))
 
+(use-package avy
+  :bind
+  ("C-c a a" . avy-goto-char-2))
+
 (use-package company
   :config
   (add-hook 'after-init-hook 'global-company-mode)
@@ -245,13 +249,13 @@
 (use-package csharp-mode
   :mode ("\\.cs'"))
 
-(use-package omnisharp
-  :after company
-  :config
-  (add-hook 'csharp-mode-hook 'omnisharp-mode)
-  (add-to-list 'company-backends 'company-omnisharp)
-  (add-hook 'csharp-mode-hook #'company-mode)
-  (add-hook 'csharp-mode-hook #'flycheck-mode))
+;(use-package omnisharp
+;  :after company
+;  :config
+;  (add-hook 'csharp-mode-hook 'omnisharp-mode)
+;  (add-to-list 'company-backends 'company-omnisharp)
+;  (add-hook 'csharp-mode-hook #'company-mode)
+;  (add-hook 'csharp-mode-hook #'flycheck-mode))
 
 (use-package keychain-environment
   :config (keychain-refresh-environment))
