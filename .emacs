@@ -6,9 +6,9 @@
 
 (require 'package)
 (setq package-enable-at-startup nil)
+(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
 (add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
@@ -29,7 +29,7 @@
 
 (set-face-attribute 'default nil
 		:family "Pragmata Pro"
-		:height 100
+		:height 160
 		:weight 'bold)
 
 ;; Behavior
@@ -61,6 +61,8 @@
 
 ;; Packages
 (setq use-package-always-ensure t)
+
+(setq-default lsp-rust-server 'rust-analyzer)
 
 (setq-default indent-tabs-mode nil)
 
@@ -205,31 +207,39 @@
 
 (use-package cargo
   :config
-  (setq cargo-process--command-fmt "cargo +nightly fmt")
   (add-hook 'rust-mode-hook #'cargo-minor-mode)
   (add-hook 'cargo-process-mode-hook (lambda ()
                                        (setq truncate-lines nil)
                                        (setq truncate-partial-width-windows nil))))
 
-(use-package racer
+(use-package lsp-mode
+  :hook (rust-mode . lsp)
+  :commands lsp)
+(use-package lsp-ui
+  :commands lsp-ui-mode
   :config
-  (add-hook 'rust-mode-hook #'racer-mode)
-  (add-hook 'racer-mode-hook #'eldoc-mode)
-  (add-hook 'racer-mode-hook #'company-mode)
-  (define-key evil-normal-state-map (kbd "g d") 'racer-find-definition)
-  (define-key evil-normal-state-map (kbd "g .") 'racer-describe))
+  (setq-default lsp-ui-sideline-show-symbol nil))
+(use-package company-lsp
+  :commands company-lsp)
+(use-package helm-lsp
+  :commands helm-lsp-workspace-symbol)
+(use-package lsp-treemacs
+  :commands lsp-treemacs-errors-list)
+(use-package yasnippet)
 
-(use-package flycheck-rust
-  :after rust-mode
-  :config
-  (add-hook 'flycheck-mode-hook #'flycheck-rust-setup))
+(use-package glsl-mode
+  :mode ("\\.glsl\\'" "\\.frag\\'" "\\.vert\\'"))
 
 (use-package markdown-mode
   :commands (markdown-mode gfm-mode)
+  :config (flyspell-mode 1)
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
          ("\\.markdown\\'" . markdown-mode))
   :init (setq markdown-command "markdown"))
+
+(use-package yaml-mode
+  :mode "\\.yml\\'")
 
 (use-package rjsx-mode
   :mode "\\.jsx\\'")
@@ -248,14 +258,6 @@
 
 (use-package csharp-mode
   :mode ("\\.cs'"))
-
-;(use-package omnisharp
-;  :after company
-;  :config
-;  (add-hook 'csharp-mode-hook 'omnisharp-mode)
-;  (add-to-list 'company-backends 'company-omnisharp)
-;  (add-hook 'csharp-mode-hook #'company-mode)
-;  (add-hook 'csharp-mode-hook #'flycheck-mode))
 
 (use-package keychain-environment
   :config (keychain-refresh-environment))
@@ -471,5 +473,7 @@
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file t)
+
+(load "~/.emacs.d/ra-emacs-lsp.el")
 
 ;;; .emacs ends here

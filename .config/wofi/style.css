@@ -1,0 +1,20 @@
+window {
+    background-color: #181818;
+    color: #ffffff;
+    border: solid 3px #38fc38;
+}
+
+#input {
+    font-family: PragmataPro;
+    font-size: 18px;
+    color: #ffffff;
+    background-color: #181818;
+    border: solid 3px #38fc38;
+}
+
+#text {
+    font-family: PragmataPro;
+    font-size: 18px;
+    color: #ffffff;
+    margin: 4px;
+}
