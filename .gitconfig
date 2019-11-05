@@ -1,0 +1,20 @@
+[user]
+    name = Nick Massey
+    email = nickmass@nickmass.com
+[branch]
+    autosetuprebase = always
+[core]
+    editor = emacsclient -a \"\" -c
+[alias]
+    lol = log --graph --decorate --pretty=oneline --abbrev-commit --all
+[merge]
+    tool = ediff
+[mergetool.ediff]
+    cmd = emacsclient -a \"\" -e \"(ediff-merge-files-with-ancestor \\\"$LOCAL\\\" \\\"$REMOTE\\\" \\\"$BASE\\\" nil \\\"$MERGED\\\")\" 2>&1
+    trustExitCode = false
+[diff]
+    tool = ediff
+[difftool.ediff]
+    cmd = emacsclient -a \"\" -e \"(ediff-files \\\"$LOCAL\\\" \\\"$REMOTE\\\")\"
+[rerere]
+    enabled = true
