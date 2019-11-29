@@ -17,6 +17,11 @@ bindkey "^H" backward-delete-char
 bindkey "^W" backward-kill-word
 bindkey "^U" backward-kill-line
 
+# Delete binding
+bindkey "^[[3~" delete-char
+bindkey -M vicmd "^[[3~" delete-char
+bindkey -M visual "^[[3~" kill-region
+
 bindkey "^[[A" history-search-backward
 bindkey "^[[B" history-search-forward
 bindkey -M vicmd "^[[A" history-search-backward
@@ -101,8 +106,10 @@ function +vi-git-untracked-files() {
 }
 
 # Cursor indicates vi mode
-function zle-line-init zle-keymap-select {
-    if [ $KEYMAP = vicmd ]; then
+function zle-line-init zle-keymap-select zle-line-pre-redraw {
+    if [ $REGION_ACTIVE -eq 1 ]; then
+        echo -ne "\e[3 q"
+    elif [ $KEYMAP = vicmd ]; then
         echo -ne "\e[2 q"
     else
         echo -ne "\e[6 q"
@@ -111,6 +118,7 @@ function zle-line-init zle-keymap-select {
 
 zle -N zle-line-init
 zle -N zle-keymap-select
+zle -N zle-line-pre-redraw
 
 # Set cursor back to block before running a command
 preexec() {
