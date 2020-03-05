@@ -75,7 +75,9 @@ zstyle ":vcs_info:git:*" actionformats "(%F{yellow}%a%f) %b%u%c"
 zstyle ":vcs_info:git:*" stagedstr "%F{green}+%f"
 zstyle ":vcs_info:git:*" unstagedstr "%F{red}~%f"
 untrackedstr="%F{yellow}*%f"
-aheadbehindstr="%F{cyan}^%f"
+divergedstr="%F{red}#%f"
+aheadstr="%F{green}v%f"
+behindstr="%F{cyan}^%f"
 
 zstyle ":vcs_info:git*+set-message:*" hooks git-fancy-branch git-untracked-files
 
@@ -88,8 +90,12 @@ function +vi-git-fancy-branch() {
     elif git rev-parse --quiet --verify "origin/${hook_com[branch]}" 1> /dev/null 2>&1; then
         ahead=$(git rev-list "${hook_com[branch]}..origin/${hook_com[branch]}" --count 2> /dev/null)
         behind=$(git rev-list "origin/${hook_com[branch]}..${hook_com[branch]}" --count 2> /dev/null)
-        if [ ${ahead:-0} -gt 0 ] || [ ${behind:-0} -gt 0 ]; then
-            hook_com[branch]="$aheadbehindstr${hook_com[branch]}"
+        if [ ${ahead:-0} -gt 0 ] && [ ${behind:-0} -gt 0 ]; then
+            hook_com[branch]="$divergedstr${hook_com[branch]}"
+        elif [ ${ahead:-0} -gt 0 ]; then
+            hook_com[branch]="$aheadstr${hook_com[branch]}"
+        elif [ ${behind:-0} -gt 0 ]; then
+            hook_com[branch]="$behindstr${hook_com[branch]}"
         fi
     fi
 }
