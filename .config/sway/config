@@ -23,7 +23,13 @@ set $menu wofi --show run | xargs swaymsg exec --
 #
 # Default wallpaper (more resolutions are available in /usr/share/backgrounds/sway/)
 output * bg $HOME/.config/sway/wallpaper.png fill
-focus output DP-4
+
+output DP-1 resolution 3840x2160 position 0 0
+output DP-2 resolution 3840x2160 position 3840 0
+output HDMI-A-1 resolution 1920x1080 position -1920 0
+
+focus output DP-1
+
 #
 # Example configuration:
 #
@@ -44,6 +50,8 @@ focus output DP-4
 #
 # You can get the names of your inputs by running: swaymsg -t get_inputs
 # Read `man 5 sway-input` for more information about this section.
+
+font PragmataPro 14
 
 default_border pixel
 smart_borders on
@@ -195,24 +203,10 @@ bindsym $mod+r mode "resize"
 # Read `man 5 sway-bar` for more information about this section.
 bar {
     position top
-
-    # When the status_command prints a new line to stdout, swaybar updates.
-    # The default just shows the current date and time.
     swaybar_command waybar
-
-    colors {
-        background #181818
-        statusline #aaaaaa
-
-        # color_class      border  backg.  text
-        focused_workspace  #181818 #38fc38 #444444
-        active_workspace   #181818 #aeb2c3 #222222
-        inactive_workspace #181818 #444444 #888888
-        urgent_workspace   #181818 #38fc38 #444444
-    }
 }
 
-input "1241:361:USB_Keyboard" {
+input type:keyboard {
     xkb_options caps:escape
 }
 
@@ -220,10 +214,20 @@ bindsym XF86AudioRaiseVolume exec pamixer -i 5
 bindsym XF86AudioLowerVolume exec pamixer -d 5
 bindsym XF86AudioMute exec pamixer -t
 
-bindsym Print exec screenshot.sh
-bindsym Shift+Print exec screenshot.sh region
+bindsym Print exec /home/nickmass/bin/screenshot.sh
+bindsym Shift+Print exec /home/nickmass/bin/screenshot.sh region
 bindsym $mod+Semicolon exec swaylock-blur -- -F -l
 
 include /etc/sway/config.d/*
 
-exec "systemctl --user import-environment; systemctl --user start sway-session.target"
+seat seat0 xcursor_theme Vanilla-DMZ 48
+
+set $gnome-schema org.gnome.desktop.interface
+
+exec_always {
+    gsettings set $gnome-schema cursor-theme 'Vanilla-DMZ'
+    gsettings set $gnome-schema cursor-size 48
+}
+
+
+exec systemctl --user import-environment; systemctl --user start sway-session.target

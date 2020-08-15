@@ -3,6 +3,8 @@
 ;;; Rust and web dev ahoy.
 
 ;;; Code:
+(setq comp-speed 3)
+(setq comp-deferred-compilation 1)
 
 (require 'package)
 (setq package-enable-at-startup nil)
@@ -45,11 +47,15 @@
 (show-paren-mode 1)
 
 (setq split-height-threshold 160)
-(setq-default show-trailing-whitespace t)
+(setq-default show-trailing-whitespace 1)
 (setq-default display-line-numbers 'relative)
 (setq-default auto-hscroll-mode 'current-line)
-(set-default 'truncate-lines 1)
+(setq-default truncate-lines 1)
 (setq-default truncate-partial-width-windows 1)
+
+;; lsp-mode suggested performance tweaks
+(setq gc-cons-threshold 100000000)
+(setq read-process-output-max (* 1024 1024))
 
 ;; Shift+Arrows to navigate windows
 (windmove-default-keybindings)
@@ -65,6 +71,8 @@
 (setq-default lsp-rust-server 'rust-analyzer)
 
 (setq-default indent-tabs-mode nil)
+
+(use-package all-the-icons)
 
 (use-package monokai-theme
   :config
@@ -144,6 +152,10 @@
 	'((read-file-name-internal . ivy--regex-plus)
 	  (t . ivy--regex-plus))))
 
+(use-package projectile
+  :config
+  (projectile-mode 1))
+
 (use-package counsel
   :config
   (counsel-mode 1)
@@ -152,11 +164,8 @@
   ("C-c a f" . counsel-find-file)
   ("C-c a r" . counsel-recentf)
   ("C-c a d" . ivy-switch-buffer)
-  ("C-c a b" . ivy-switch-buffer))
-
-(use-package projectile
-  :config
-  (projectile-mode 1))
+  ("C-c a b" . ivy-switch-buffer)
+  ("C-c a p" . projectile-find-file))
 
 (use-package counsel-projectile
   :after projectile
@@ -203,7 +212,8 @@
 (use-package rust-mode
   :mode ("\\.rs\\'")
   :config
-  (setq rust-format-on-save t))
+  (setq-default rust-format-on-save t)
+  (setq-default rust-format-show-buffer nil))
 
 (use-package cargo
   :config
@@ -214,17 +224,22 @@
 
 (use-package lsp-mode
   :hook (rust-mode . lsp)
+  :bind (("C-c a ." . lsp-execute-code-action)
+         :map evil-normal-state-map
+         ("gd" . lsp-find-definition)
+         ("gr" . lsp-find-references))
   :commands lsp)
+
 (use-package lsp-ui
   :commands lsp-ui-mode
   :config
-  (setq-default lsp-ui-sideline-show-symbol nil))
-(use-package company-lsp
-  :commands company-lsp)
-(use-package helm-lsp
-  :commands helm-lsp-workspace-symbol)
-(use-package lsp-treemacs
-  :commands lsp-treemacs-errors-list)
+  (setq-default lsp-ui-sideline-show-symbol nil)
+  (setq-default lsp-ui-doc-alignment 'window)
+  (setq-default lsp-ui-doc-position 'top)
+  (add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda()
+                                            (display-line-numbers-mode -1)))
+  )
+
 (use-package yasnippet)
 
 (use-package glsl-mode
@@ -471,9 +486,7 @@
 
 (global-prettify-symbols-mode 1)
 
-(setq custom-file "~/.emacs.d/custom.el")
+(setq custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file t)
-
-(load "~/.emacs.d/ra-emacs-lsp.el")
 
 ;;; .emacs ends here
