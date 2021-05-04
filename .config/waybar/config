@@ -29,7 +29,8 @@
         "spacing": 10
     },
     "clock": {
-        "tooltip-format": "{:%Y-%m-%d | %H:%M}",
+        "format": "{:%a %Y-%m-%d %I:%M}",
+        "tooltip": false,
         "format-alt": "{:%Y-%m-%d}"
     },
     "cpu": {
@@ -50,7 +51,7 @@
         "format-plugged": "Plg {capacity}%"
     },
     "network": {
-        "interface": "net1",
+        "interface": "net0",
         "format": "",
         "format-wifi": "{essid} ({signalStrength}%) {ipaddr}/{cidr}",
         "format-ethernet": "{ifname}: {ipaddr}/{cidr}",

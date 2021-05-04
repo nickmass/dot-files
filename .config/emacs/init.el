@@ -1,16 +1,12 @@
-;;; .emacs -- NickMass' emacs config
+;;; init.el -- NickMass' emacs config
 ;;; Commentary:
 ;;; Rust and web dev ahoy.
 
 ;;; Code:
-(setq comp-speed 3)
-(setq comp-deferred-compilation 1)
-
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
@@ -45,6 +41,7 @@
       `((".*" ,temporary-file-directory t)))
 
 (show-paren-mode 1)
+(global-so-long-mode 1)
 
 (setq split-height-threshold 160)
 (setq-default show-trailing-whitespace 1)
@@ -78,10 +75,13 @@
   :config
   (load-theme 'monokai t))
 
+(use-package sudo-edit)
+
 (use-package evil
   :init
   (setq evil-want-integration nil)
   (setq evil-want-keybinding nil)
+  (setq evil-undo-system 'undo-tree)
   :config
   (evil-mode 1)
   (setq evil-want-fine-undo t)
@@ -91,7 +91,8 @@
   (setq evil-insert-state-cursor `(,monokai-green bar))
   (setq evil-replace-state-cursor `(,monokai-blue bar))
   (setq evil-operator-state-cursor `(,monokai-green hollow))
-  (setq evil-motion-state-cursor `(,monokai-blue bar)))
+  (setq evil-motion-state-cursor `(,monokai-blue bar))
+  (evil-ex-define-cmd "W" 'sudo-edit))
 
 (use-package evil-escape
   :after evil
@@ -153,19 +154,18 @@
 	  (t . ivy--regex-plus))))
 
 (use-package projectile
+  :demand t
   :config
-  (projectile-mode 1))
+  (projectile-mode 1)
+  :bind
+  ("C-c a p" . projectile-find-file))
 
 (use-package counsel
   :config
   (counsel-mode 1)
   :bind
   ("C-c a s" . counsel-rg)
-  ("C-c a f" . counsel-find-file)
-  ("C-c a r" . counsel-recentf)
-  ("C-c a d" . ivy-switch-buffer)
-  ("C-c a b" . ivy-switch-buffer)
-  ("C-c a p" . projectile-find-file))
+  ("C-c a r" . counsel-recentf))
 
 (use-package counsel-projectile
   :after projectile
@@ -180,8 +180,13 @@
   (add-hook 'after-init-hook 'global-company-mode)
   (define-key company-active-map (kbd "<return>") #'company-complete-selection))
 
+(use-package company-box
+  :hook (company-mode . company-box-mode))
+
 (use-package flycheck
-  :config (global-flycheck-mode 1))
+  :config
+  (global-flycheck-mode 1)
+  (setq-default flycheck-checker-error-threshold 10000))
 
 (use-package exec-path-from-shell
   :if window-system
@@ -196,8 +201,10 @@
   :commands (magit-status)
   :bind (("C-c a g" . magit-status)))
 
-(use-package evil-magit
-  :after (evil magit))
+(use-package magit-delta
+  :after (magit)
+  :config
+  (magit-delta-mode 1))
 
 (use-package which-key
   :config
@@ -223,11 +230,17 @@
                                        (setq truncate-partial-width-windows nil))))
 
 (use-package lsp-mode
+  :after (projectile)
+  :init
+  (setq lsp-keymap-prefix "C-c l")
   :hook (rust-mode . lsp)
   :bind (("C-c a ." . lsp-execute-code-action)
+         ("C-c a x" . lsp-rust-analyzer-run)
          :map evil-normal-state-map
          ("gd" . lsp-find-definition)
          ("gr" . lsp-find-references))
+  :config
+  (setq-default lsp-headerline-breadcrumb-enable nil)
   :commands lsp)
 
 (use-package lsp-ui
@@ -237,7 +250,67 @@
   (setq-default lsp-ui-doc-alignment 'window)
   (setq-default lsp-ui-doc-position 'top)
   (add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda()
-                                            (display-line-numbers-mode -1)))
+                                            (display-line-numbers-mode -1))))
+
+(use-package dap-mode
+  :after (projectile)
+  :config
+  (setq-default dap-print-io t)
+  (defun get-rust-binary ()
+    "Prompt user for which binary to use and return the filename."
+    (interactive)
+    (let* ((bin-name (read-string "Enter the target to execute: "))
+           (filename (concat (projectile-project-root) "target/debug/" bin-name))
+           (does-not-exist (not (file-exists-p filename))))
+      (when does-not-exist (message "No binary found for specified target %s!" bin-name))
+      filename))
+  (defun get-rust-args ()
+    "Prompt user for args to pass."
+    (interactive)
+    (let ((args-string (read-string "Enter the target arguments: ")))
+      (split-string args-string)))
+  (defun dap-lldb-rust--populate-start-file-args (conf)
+    "Populate CONF with the required arguments."
+    (-> conf
+        (dap--put-if-absent :dap-server-path '("lldb-vscode"))
+        (dap--put-if-absent :type "lldb-vscode")
+        (dap--put-if-absent :cwd (car `(,(projectile-project-root))))
+        (dap--put-if-absent :program (car `(,(get-rust-binary))))
+        (dap--put-if-absent :name "Rust Debug")
+        (dap--put-if-absent :program-to-start "cargo build")
+        (dap--put-if-absent :initCommands (car `(,(split-string (concat "command script import " (string-trim (shell-command-to-string "rustc --print sysroot")) "/lib/rustlib/etc/lldb_lookup.py
+type synthetic add -l lldb_lookup.synthetic_lookup -x '.*' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)String$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^&str$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^&\[.+\]$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(std::ffi::([a-z_]+::)+)OsString$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)Vec<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)VecDeque<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)BTreeSet<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)BTreeMap<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(std::collections::([a-z_]+::)+)HashMap<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(std::collections::([a-z_]+::)+)HashSet<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)Rc<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)Arc<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)Cell<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)Ref<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)RefMut<.+>$' --category Rust
+type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)RefCell<.+>$' --category Rust
+type category enable Rust") "\n"))))
+        (dap--put-if-absent :args (car `(,(get-rust-args))))
+        ))
+  (add-hook 'dap-stopped-hook
+          (lambda () (call-interactively #'dap-hydra)))
+  (add-hook 'rust-mode-hook (lambda ()
+                                (dap-register-debug-provider "lldb-vscode" 'dap-lldb-rust--populate-start-file-args)
+                                (dap-register-debug-template "Rust Run Configuration"
+                                                             `(
+                                                               :type "lldb-vscode"
+                                                               :cwd ,(projectile-project-root)
+                                                               :request "launch"
+                                                               :stopOnEntry t
+                                                               )
+                                                             )))
   )
 
 (use-package yasnippet)
@@ -489,4 +562,4 @@
 (setq custom-file (concat user-emacs-directory "custom.el"))
 (load custom-file t)
 
-;;; .emacs ends here
+;;; init.el ends here

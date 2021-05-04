@@ -17,7 +17,7 @@ set $right l
 set $term alacritty
 # Your preferred application launcher
 # Note: it's recommended that you pass the final command to sway
-set $menu wofi --show run | xargs swaymsg exec --
+set $menu wofi --show drun | xargs swaymsg exec --
 
 ### Output configuration
 #
@@ -218,6 +218,10 @@ bindsym Print exec /home/nickmass/bin/screenshot.sh
 bindsym Shift+Print exec /home/nickmass/bin/screenshot.sh region
 bindsym $mod+Semicolon exec swaylock-blur -- -F -l
 
+# Globally forward mouse 10 to all X windows (discord push to talk)
+bindsym --no-repeat --whole-window BTN_FORWARD exec /home/nickmass/bin/key-forward --mouse 10
+bindsym --no-repeat --whole-window --release BTN_FORWARD exec /home/nickmass/bin/key-forward --release --mouse 10
+
 include /etc/sway/config.d/*
 
 seat seat0 xcursor_theme Vanilla-DMZ 48
@@ -230,4 +234,4 @@ exec_always {
 }
 
 
-exec systemctl --user import-environment; systemctl --user start sway-session.target
+exec "systemctl --user import-environment; systemctl --user start sway-session.target"

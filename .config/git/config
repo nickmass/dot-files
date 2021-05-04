@@ -5,6 +5,9 @@
     autosetuprebase = always
 [core]
     editor = emacsclient -a \"\" -c
+    pager = delta
+[interactive]
+    diffFilter = delta --color-only
 [alias]
     lol = log --graph --decorate --pretty=oneline --abbrev-commit --all
 [merge]
@@ -18,3 +21,7 @@
     cmd = emacsclient -a \"\" -e \"(ediff-files \\\"$LOCAL\\\" \\\"$REMOTE\\\")\"
 [rerere]
     enabled = true
+[delta]
+    features = side-by-side line-numbers decorations
+    whitespace-error-style = 22 reverse
+    syntax-theme = Monokai Extended Origin
