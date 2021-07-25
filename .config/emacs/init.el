@@ -33,6 +33,7 @@
 ;; Behavior
 (server-start)
 (setq-default js-indent-level 2)
+(setq create-lockfiles nil)
 
 ;; Store backups in /tmp
 (setq backup-directory-alist
@@ -79,7 +80,7 @@
 
 (use-package evil
   :init
-  (setq evil-want-integration nil)
+  (setq evil-want-integration t)
   (setq evil-want-keybinding nil)
   (setq evil-undo-system 'undo-tree)
   :config
@@ -201,11 +202,6 @@
   :commands (magit-status)
   :bind (("C-c a g" . magit-status)))
 
-(use-package magit-delta
-  :after (magit)
-  :config
-  (magit-delta-mode 1))
-
 (use-package which-key
   :config
   (which-key-mode))
@@ -313,7 +309,8 @@ type category enable Rust") "\n"))))
                                                              )))
   )
 
-(use-package yasnippet)
+(use-package yasnippet
+  :hook (lsp-mode . yas-minor-mode))
 
 (use-package glsl-mode
   :mode ("\\.glsl\\'" "\\.frag\\'" "\\.vert\\'"))
@@ -344,7 +341,14 @@ type category enable Rust") "\n"))))
 (use-package protobuf-mode
   :mode ("\\.proto'"))
 
+(use-package tree-sitter)
+(use-package tree-sitter-langs)
+
+(use-package systemd)
+
 (use-package csharp-mode
+  :after (tree-sitter tree-sitter-langs)
+  :config (csharp-tree-sitter-mode)
   :mode ("\\.cs'"))
 
 (use-package keychain-environment
