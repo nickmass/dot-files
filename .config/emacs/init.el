@@ -92,8 +92,7 @@
   (setq evil-insert-state-cursor `(,monokai-green bar))
   (setq evil-replace-state-cursor `(,monokai-blue bar))
   (setq evil-operator-state-cursor `(,monokai-green hollow))
-  (setq evil-motion-state-cursor `(,monokai-blue bar))
-  (evil-ex-define-cmd "W" 'sudo-edit))
+  (setq evil-motion-state-cursor `(,monokai-blue bar)))
 
 (use-package evil-escape
   :after evil
@@ -229,15 +228,15 @@
   :after (projectile)
   :init
   (setq lsp-keymap-prefix "C-c l")
+  (setq-default lsp-headerline-breadcrumb-enable nil)
   :hook (rust-mode . lsp)
   :bind (("C-c a ." . lsp-execute-code-action)
          ("C-c a x" . lsp-rust-analyzer-run)
          :map evil-normal-state-map
          ("gd" . lsp-find-definition)
-         ("gr" . lsp-find-references))
-  :config
-  (setq-default lsp-headerline-breadcrumb-enable nil)
-  :commands lsp)
+         ("gr" . lsp-find-references)
+         ("ge" . next-error))
+  )
 
 (use-package lsp-ui
   :commands lsp-ui-mode
@@ -245,8 +244,11 @@
   (setq-default lsp-ui-sideline-show-symbol nil)
   (setq-default lsp-ui-doc-alignment 'window)
   (setq-default lsp-ui-doc-position 'top)
+  (setq-default lsp-ui-doc-max-height 50)
+  (setq-default lsp-ui-doc-max-width 100)
   (add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda()
-                                            (display-line-numbers-mode -1))))
+                                            (display-line-numbers-mode -1)
+                                            (setq show-trailing-whitespace nil))))
 
 (use-package dap-mode
   :after (projectile)
