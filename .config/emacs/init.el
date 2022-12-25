@@ -70,8 +70,6 @@
 
 (setq-default indent-tabs-mode nil)
 
-(use-package all-the-icons)
-
 (use-package monokai-theme
   :config
   (load-theme 'monokai t))
@@ -109,6 +107,7 @@
 (use-package undo-tree
   :config
   (setq undo-tree-visualizer-diff 1)
+  (setq undo-tree-auto-save-history nil)
   (with-no-warnings (global-undo-tree-mode 1)))
 
 (use-package telephone-line
@@ -188,6 +187,13 @@
   (global-flycheck-mode 1)
   (setq-default flycheck-checker-error-threshold 10000))
 
+(use-package flycheck-rust
+  :hook (rust-mode . flycheck-rust-setup))
+
+(use-package flycheck-inline
+  :config
+  (global-flycheck-inline-mode 1))
+
 (use-package exec-path-from-shell
   :if window-system
   :init (exec-path-from-shell-initialize))
@@ -211,6 +217,12 @@
   (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
   (add-hook 'flycheck-mode-hook 'diff-hl-flydiff-mode))
 
+(use-package tree-sitter
+  :config
+  (require 'tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+
 (use-package rust-mode
   :mode ("\\.rs\\'")
   :config
@@ -224,95 +236,12 @@
                                        (setq truncate-lines nil)
                                        (setq truncate-partial-width-windows nil))))
 
-(use-package lsp-mode
-  :after (projectile)
-  :init
-  (setq lsp-keymap-prefix "C-c l")
-  (setq-default lsp-headerline-breadcrumb-enable nil)
-  :hook (rust-mode . lsp)
-  :bind (("C-c a ." . lsp-execute-code-action)
-         ("C-c a x" . lsp-rust-analyzer-run)
-         :map evil-normal-state-map
-         ("gd" . lsp-find-definition)
-         ("gr" . lsp-find-references)
-         ("ge" . next-error))
-  )
+(use-package yasnippet :demand t )
 
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :config
-  (setq-default lsp-ui-sideline-show-symbol nil)
-  (setq-default lsp-ui-doc-alignment 'window)
-  (setq-default lsp-ui-doc-position 'top)
-  (setq-default lsp-ui-doc-max-height 50)
-  (setq-default lsp-ui-doc-max-width 100)
-  (add-hook 'lsp-ui-doc-frame-mode-hook #'(lambda()
-                                            (display-line-numbers-mode -1)
-                                            (setq show-trailing-whitespace nil))))
-
-(use-package dap-mode
-  :after (projectile)
-  :config
-  (setq-default dap-print-io t)
-  (defun get-rust-binary ()
-    "Prompt user for which binary to use and return the filename."
-    (interactive)
-    (let* ((bin-name (read-string "Enter the target to execute: "))
-           (filename (concat (projectile-project-root) "target/debug/" bin-name))
-           (does-not-exist (not (file-exists-p filename))))
-      (when does-not-exist (message "No binary found for specified target %s!" bin-name))
-      filename))
-  (defun get-rust-args ()
-    "Prompt user for args to pass."
-    (interactive)
-    (let ((args-string (read-string "Enter the target arguments: ")))
-      (split-string args-string)))
-  (defun dap-lldb-rust--populate-start-file-args (conf)
-    "Populate CONF with the required arguments."
-    (-> conf
-        (dap--put-if-absent :dap-server-path '("lldb-vscode"))
-        (dap--put-if-absent :type "lldb-vscode")
-        (dap--put-if-absent :cwd (car `(,(projectile-project-root))))
-        (dap--put-if-absent :program (car `(,(get-rust-binary))))
-        (dap--put-if-absent :name "Rust Debug")
-        (dap--put-if-absent :program-to-start "cargo build")
-        (dap--put-if-absent :initCommands (car `(,(split-string (concat "command script import " (string-trim (shell-command-to-string "rustc --print sysroot")) "/lib/rustlib/etc/lldb_lookup.py
-type synthetic add -l lldb_lookup.synthetic_lookup -x '.*' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)String$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^&str$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^&\[.+\]$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(std::ffi::([a-z_]+::)+)OsString$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)Vec<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)VecDeque<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)BTreeSet<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)BTreeMap<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(std::collections::([a-z_]+::)+)HashMap<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(std::collections::([a-z_]+::)+)HashSet<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)Rc<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(alloc::([a-z_]+::)+)Arc<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)Cell<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)Ref<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)RefMut<.+>$' --category Rust
-type summary add -F lldb_lookup.summary_lookup  -e -x -h '^(core::([a-z_]+::)+)RefCell<.+>$' --category Rust
-type category enable Rust") "\n"))))
-        (dap--put-if-absent :args (car `(,(get-rust-args))))
-        ))
-  (add-hook 'dap-stopped-hook
-          (lambda () (call-interactively #'dap-hydra)))
-  (add-hook 'rust-mode-hook (lambda ()
-                                (dap-register-debug-provider "lldb-vscode" 'dap-lldb-rust--populate-start-file-args)
-                                (dap-register-debug-template "Rust Run Configuration"
-                                                             `(
-                                                               :type "lldb-vscode"
-                                                               :cwd ,(projectile-project-root)
-                                                               :request "launch"
-                                                               :stopOnEntry t
-                                                               )
-                                                             )))
-  )
-
-(use-package yasnippet
-  :hook (lsp-mode . yas-minor-mode))
+(use-package eglot
+  :hook (rust-mode  . eglot-ensure)
+  :bind (("C-c a ." . eglot-code-actions)
+         ("C-c a R" . eglot-rename)))
 
 (use-package glsl-mode
   :mode ("\\.glsl\\'" "\\.frag\\'" "\\.vert\\'"))
@@ -343,8 +272,11 @@ type category enable Rust") "\n"))))
 (use-package protobuf-mode
   :mode ("\\.proto'"))
 
-(use-package tree-sitter)
-(use-package tree-sitter-langs)
+(use-package dockerfile-mode
+  :mode ("Dockerfile'"))
+
+(use-package wgsl-mode
+  :mode "\\.wgsl\\'")
 
 (use-package systemd)
 
