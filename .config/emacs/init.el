@@ -10,29 +10,32 @@
 (package-initialize)
 
 (unless (package-installed-p 'use-package)
-(package-refresh-contents)
-(package-install 'use-package))
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 (eval-when-compile
-(require 'use-package))
-(require 'diminish)
+  (require 'use-package))
 (require 'bind-key)
+(setq use-package-always-ensure t)
 
 ;; Appearence
 (menu-bar-mode -1)
 (tool-bar-mode -1)
-(toggle-scroll-bar -1)
-(global-hl-line-mode 1)
+(scroll-bar-mode nil)
+(customize-set-variable 'scroll-bar-mode nil)
+(customize-set-variable 'horizontal-scroll-bar-mode nil)
 (setq inhibit-startup-screen 1)
+
+(global-hl-line-mode 1)
 
 (set-face-attribute 'default nil
 		:family "Pragmata Pro"
 		:height 160
 		:weight 'bold)
 
+
 ;; Behavior
 (server-start)
-(setq-default js-indent-level 2)
 (setq create-lockfiles nil)
 
 ;; Store backups in /tmp
@@ -47,7 +50,7 @@
 (setq split-height-threshold 160)
 (setq-default show-trailing-whitespace 1)
 (setq-default display-line-numbers 'relative)
-(setq-default auto-hscroll-mode 'current-line)
+(setq auto-hscroll-mode 'current-line)
 (setq-default truncate-lines 1)
 (setq-default truncate-partial-width-windows 1)
 
@@ -58,16 +61,10 @@
 ;; Shift+Arrows to navigate windows
 (windmove-default-keybindings)
 
-(global-set-key (kbd "C-<SPC>") 'mode-line-other-buffer)
-
 ;; Persist hardlinks to files
-(setq-default backup-by-copying t)
+(setq backup-by-copying 1)
 
 ;; Packages
-(setq use-package-always-ensure t)
-
-(setq-default lsp-rust-server 'rust-analyzer)
-
 (setq-default indent-tabs-mode nil)
 
 (use-package monokai-theme
@@ -90,7 +87,8 @@
   (setq evil-insert-state-cursor `(,monokai-green bar))
   (setq evil-replace-state-cursor `(,monokai-blue bar))
   (setq evil-operator-state-cursor `(,monokai-green hollow))
-  (setq evil-motion-state-cursor `(,monokai-blue bar)))
+  (setq evil-motion-state-cursor `(,monokai-blue bar))
+  (evil-ex-define-cmd "ll" 'flymake-show-project-diagnostics))
 
 (use-package evil-escape
   :after evil
@@ -104,14 +102,22 @@
   :config
   (evil-collection-init))
 
+(use-package general
+  :config
+  (general-define-key
+   "C-<SPC>" 'mode-line-other-buffer)
+  (general-define-key
+   :states 'normal
+   "[ s" 'flymake-goto-prev-error
+   "] s" 'flymake-goto-next-error))
+
 (use-package undo-tree
   :config
   (setq undo-tree-visualizer-diff 1)
-  (setq undo-tree-auto-save-history nil)
-  (with-no-warnings (global-undo-tree-mode 1)))
+  (setq undo-tree-history-directory-alist '(("." . "~/.config/emacs/undo")))
+  (global-undo-tree-mode 1))
 
 (use-package telephone-line
-  :if window-system
   :config
   (set-face-attribute 'telephone-line-evil-emacs nil
 		      :background monokai-gray)
@@ -146,20 +152,21 @@
 
 (use-package ivy
   :config
-  (ivy-mode 1)
   (setq ivy-use-virtual-buffers t)
   (setq ivy-re-builders-alist
 	'((read-file-name-internal . ivy--regex-plus)
-	  (t . ivy--regex-plus))))
+	  (t . ivy--regex-plus)))
+  (ivy-mode 1))
 
 (use-package projectile
   :demand t
   :config
   (projectile-mode 1)
   :bind
-  ("C-c a p" . projectile-find-file))
+  ("C-c p" . projectile-find-file))
 
 (use-package counsel
+  :demand t
   :config
   (counsel-mode 1)
   :bind
@@ -175,32 +182,28 @@
   ("C-c a a" . avy-goto-char-2))
 
 (use-package company
-  :config
-  (add-hook 'after-init-hook 'global-company-mode)
-  (define-key company-active-map (kbd "<return>") #'company-complete-selection))
+  :hook (prog-mode text-mode)
+  :bind (:map company-active-map
+              ("<return>" . company-complete-selection)))
 
 (use-package company-box
-  :hook (company-mode . company-box-mode))
+  :hook company-mode)
 
 (use-package flycheck
   :config
-  (global-flycheck-mode 1)
-  (setq-default flycheck-checker-error-threshold 10000))
-
-(use-package flycheck-rust
-  :hook (rust-mode . flycheck-rust-setup))
+  (setq-default flycheck-checker-error-threshold 10000)
+  (setq-default flycheck-disabled-checkers '(rust-cargo rust rust-clippy))
+  (global-flycheck-mode 1))
 
 (use-package flycheck-inline
   :config
   (global-flycheck-inline-mode 1))
 
 (use-package exec-path-from-shell
-  :if window-system
   :init (exec-path-from-shell-initialize))
 
 (use-package rainbow-delimiters
-  :config
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+  :hook (prog-mode))
 
 (use-package magit
   :demand
@@ -212,16 +215,17 @@
   (which-key-mode))
 
 (use-package diff-hl
+  :hook ((magit-post-refresh . diff-hl-magit-post-refresh)
+         (flycheck-mode . diff-hl-flydiff-mode))
   :config
-  (global-diff-hl-mode 1)
-  (add-hook 'magit-post-refresh-hook 'diff-hl-magit-post-refresh)
-  (add-hook 'flycheck-mode-hook 'diff-hl-flydiff-mode))
+  (global-diff-hl-mode 1))
 
 (use-package tree-sitter
   :config
-  (require 'tree-sitter-langs)
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+  (global-tree-sitter-mode))
+
+(use-package tree-sitter-langs
+  :after tree-sitter)
 
 (use-package rust-mode
   :mode ("\\.rs\\'")
@@ -230,29 +234,35 @@
   (setq-default rust-format-show-buffer nil))
 
 (use-package cargo
-  :config
-  (add-hook 'rust-mode-hook #'cargo-minor-mode)
-  (add-hook 'cargo-process-mode-hook (lambda ()
-                                       (setq truncate-lines nil)
-                                       (setq truncate-partial-width-windows nil))))
+  :hook (rust-mode . cargo-minor-mode))
 
-(use-package yasnippet :demand t )
+(use-package yasnippet)
 
 (use-package eglot
-  :hook (rust-mode  . eglot-ensure)
+  :hook ((rust-mode . eglot-ensure)
+         (wgsl-mode . eglot-ensure))
   :bind (("C-c a ." . eglot-code-actions)
-         ("C-c a R" . eglot-rename)))
+         ("C-c a R" . eglot-rename))
+  :config
+  (add-to-list 'eglot-server-programs
+               '(rust-mode
+                 . ("rust-analyzer" :initializationOptions
+                    (:checkOnSave (:extraArgs ["--target-dir" "/tmp/emacs-rust-analyzer"])))))
+  (add-to-list 'eglot-server-programs
+               '(wgsl-mode
+                 . ("wgsl_analyzer"))))
+
+(use-package flymake-popon
+  :hook (flymake-mode . flymake-popon-mode)
+  :config (customize-set-variable 'flymake-popon-method 'popon))
 
 (use-package glsl-mode
   :mode ("\\.glsl\\'" "\\.frag\\'" "\\.vert\\'"))
 
 (use-package markdown-mode
-  :commands (markdown-mode gfm-mode)
-  :config (flyspell-mode 1)
   :mode (("README\\.md\\'" . gfm-mode)
          ("\\.md\\'" . markdown-mode)
-         ("\\.markdown\\'" . markdown-mode))
-  :init (setq markdown-command "markdown"))
+         ("\\.markdown\\'" . markdown-mode)))
 
 (use-package yaml-mode
   :mode "\\.yml\\'")
@@ -281,223 +291,32 @@
 (use-package systemd)
 
 (use-package csharp-mode
-  :after (tree-sitter tree-sitter-langs)
-  :config (csharp-tree-sitter-mode)
-  :mode ("\\.cs'"))
+  :mode "\\.cs'")
 
 (use-package keychain-environment
   :config (keychain-refresh-environment))
 
-(setq prettify-symbols-unprettify-at-point 'right-edge)
+(use-package ligature-pragmatapro
+  :config (ligature-pragmatapro-setup))
 
-(defconst pragmatapro-prettify-symbols-alist
-  (mapcar (lambda (s)
-            `(,(car s)
-              .
-              ,(vconcat
-                (apply 'vconcat (make-list (- (length (car s)) 1) (vector (decode-char 'ucs #X0020) '(Br . Bl))))
-                (vector (decode-char 'ucs (cadr s))))))
-          '(("[ERROR]"   #XE380)
-            ("[DEBUG]"   #XE381)
-            ("[INFO]"    #XE382)
-            ("[WARN]"    #XE383)
-            ("[WARNING]" #XE384)
-            ("[ERR]"     #XE385)
-            ("[FATAL]"   #XE386)
-            ("[TRACE]"   #XE387)
-            ("[FIXME]"   #XE388)
-            ("[TODO]"    #XE389)
-            ("[BUG]"     #XE38A)
-            ("[NOTE]"    #XE38B)
-            ("[HACK]"    #XE38C)
-            ("[MARK]"    #XE38D)
-            ("!!"        #XE900)
-            ("!="        #XE901)
-            ("!=="       #XE902)
-            ("!!!"       #XE903)
-            ("!≡"        #XE904)
-            ("!≡≡"       #XE905)
-            ("!>"        #XE906)
-            ("#("        #XE920)
-            ("#_"        #XE921)
-            ("#{"        #XE922)
-            ("#?"        #XE923)
-            ("#>"        #XE924)
-            ("##"        #XE925)
-            ("%="        #XE930)
-            ("%>"        #XE931)
-            ("<~"        #XE932)
-            ("&%"        #XE940)
-            ("&&"        #XE941)
-            ("&*"        #XE942)
-            ("&+"        #XE943)
-            ("&-"        #XE944)
-            ("&/"        #XE945)
-            ("&="        #XE946)
-            ("&&&"       #XE947)
-            ("&>"        #XE948)
-            ("***"       #XE960)
-            ("*="        #XE961)
-            ("*/"        #XE962)
-            ("*>"        #XE963)
-            ("++"        #XE970)
-            ("+++"       #XE971)
-            ("+="        #XE972)
-            ("+>"        #XE973)
-            ("++="       #XE974)
-            ("--"        #XE980)
-            ("-<"        #XE981)
-            ("-<<"       #XE982)
-            ("-="        #XE983)
-            ("->"        #XE984)
-            ("->>"       #XE985)
-            ("---"       #XE986)
-            ("-->"       #XE987)
-            ("-+-"       #XE988)
-            ("-\\/"      #XE989)
-            (".."        #XE990)
-            ("..."       #XE991)
-            ("..<"       #XE992)
-            (".>"        #XE993)
-            (".~"        #XE994)
-            (".="        #XE995)
-            ("/*"        #XE9A0)
-            ("//"        #XE9A1)
-            ("/>"        #XE9A2)
-            ("/="        #XE9A3)
-            ("/=="       #XE9A4)
-            ("///"       #XE9A5)
-            ("/**"       #XE9A6)
-            ("::"        #XE9B0)
-            (":="        #XE9B1)
-            (":≡"        #XE9B2)
-            (":>"        #XE9B3)
-            (":=>"       #XE9B4)
-            (":("        #XE9B5)
-            (":-("       #XE9B6)
-            (":)"        #XE9B7)
-            (":-)"       #XE9B8)
-            (":/"        #XE9B9)
-            (":\\"       #XE9BA)
-            (":3"        #XE9BB)
-            (":D"        #XE9BC)
-            (":P"        #XE9BD)
-            (":>:"       #XE9BE)
-            (":<:"       #XE9BF)
-            ("<$>"       #XE9C0)
-            ("<*"        #XE9C1)
-            ("<*>"       #XE9C2)
-            ("<+>"       #XE9C3)
-            ("<-"        #XE9C4)
-            ("<<"        #XE9C5)
-            ("<<<"       #XE9C6)
-            ("<<="       #XE9C7)
-            ("<="        #XE9C8)
-            ("<=>"       #XE9C9)
-            ("<>"        #XE9CA)
-            ("<|>"       #XE9CB)
-            ("<<-"       #XE9CC)
-            ("<|"        #XE9CD)
-            ("<=<"       #XE9CE)
-            ("<~"        #XE9CF)
-            ("<~~"       #XE9D0)
-            ("<<~"       #XE9D1)
-            ("<$"        #XE9D2)
-            ("<+"        #XE9D3)
-            ("<!>"       #XE9D4)
-            ("<@>"       #XE9D5)
-            ("<#>"       #XE9D6)
-            ("<%>"       #XE9D7)
-            ("<^>"       #XE9D8)
-            ("<&>"       #XE9D9)
-            ("<?>"       #XE9DA)
-            ("<.>"       #XE9DB)
-            ("</>"       #XE9DC)
-            ("<\\>"      #XE9DD)
-            ("<\">"      #XE9DE)
-            ("<:>"       #XE9DF)
-            ("<~>"       #XE9E0)
-            ("<**>"      #XE9E1)
-            ("<<^"       #XE9E2)
-            ("<!"        #XE9E3)
-            ("<@"        #XE9E4)
-            ("<#"        #XE9E5)
-            ("<%"        #XE9E6)
-            ("<^"        #XE9E7)
-            ("<&"        #XE9E8)
-            ("<?"        #XE9E9)
-            ("<."        #XE9EA)
-            ("</"        #XE9EB)
-            ("<\\"       #XE9EC)
-            ("<\""       #XE9ED)
-            ("<:"        #XE9EE)
-            ("<->"       #XE9EF)
-            ("<!--"      #XE9F0)
-            ("<--"       #XE9F1)
-            ("<~<"       #XE9F2)
-            ("<==>"      #XE9F3)
-            ("==<"       #XEA00)
-            ("=="        #XEA01)
-            ("==="       #XEA02)
-            ("==>"       #XEA03)
-            ("=>"        #XEA04)
-            ("=~"        #XEA05)
-            ("=>>"       #XEA06)
-            ("=/="       #XEA07)
-            ("≡≡"        #XEA10)
-            ("≡≡≡"       #XEA11)
-            ("≡:≡"       #XEA12)
-            (">-"        #XEA20)
-            (">="        #XEA21)
-            (">>"        #XEA22)
-            (">>-"       #XEA23)
-            (">=="       #XEA24)
-            (">>>"       #XEA25)
-            (">=>"       #XEA26)
-            (">>^"       #XEA27)
-            ("??"        #XEA40)
-            ("?~"        #XEA41)
-            ("?="        #XEA42)
-            ("?>"        #XEA43)
-            ("???"       #XEA44)
-            ("^="        #XEA48)
-            ("^."        #XEA49)
-            ("^?"        #XEA4A)
-            ("^.."       #XEA4B)
-            ("^<<"       #XEA4C)
-            ("^>>"       #XEA4D)
-            ("^>"        #XEA4E)
-            ("\\\\"      #XEA50)
-            ("\\>"       #XEA51)
-            ("\\/-"      #XEA52)
-            ("@>"        #XEA57)
-            ("|="        #XEA60)
-            ("||"        #XEA61)
-            ("|>"        #XEA62)
-            ("|||"       #XEA63)
-            ("|+|"       #XEA64)
-            ("|->"       #XEA65)
-            ("|-->"      #XEA66)
-            ("|=>"       #XEA67)
-            ("|==>"      #XEA68)
-            ("~="        #XEA70)
-            ("~>"        #XEA71)
-            ("~~>"       #XEA72)
-            ("~>>"       #XEA73)
-            ("\">"       #XEA90))))
+(use-package ligature
+  :config (global-ligature-mode 1))
 
-(defun add-pragmatapro-prettify-symbols-alist ()
-  "Add pragmatapro ligs to list."
-  (dolist (alias pragmatapro-prettify-symbols-alist)
-    (push alias prettify-symbols-alist)))
-
-(if (window-system)
-    (add-hook 'prog-mode-hook
-              #'add-pragmatapro-prettify-symbols-alist))
-
-(global-prettify-symbols-mode 1)
-
-(setq custom-file (concat user-emacs-directory "custom.el"))
-(load custom-file t)
+(add-hook 'text-mode-hook 'flyspell-mode)
 
 ;;; init.el ends here
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   '(flymake-popon flymake-cursor eldoc-box ligature-pragmatapro ligature yasnippet yaml-mode which-key wgsl-mode web-mode use-package undo-tree tree-sitter-langs tree-sitter-indent telephone-line systemd sudo-edit rust-mode rjsx-mode rainbow-delimiters protobuf-mode monokai-theme memoize magit-delta lua-mode lsp-ui keychain-environment helm-lsp glsl-mode flycheck-rust flycheck-inline exec-path-from-shell evil-magit evil-escape evil-collection eglot dockerfile-mode diminish diff-hl dash-functional dap-mode csharp-mode counsel-projectile company-lsp company-box cargo all-the-icons))
+ '(warning-suppress-types '((comp))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
